@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:contacts_service/contacts_service.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -23,6 +24,12 @@ class _MyAppState extends State<MyApp> {
     var status = await Permission.contacts.status;
     if (status.isGranted) {
       print('허락됨');
+      var contacts = await ContactsService.getContacts();
+      //print(contacts[0].familyName);
+      setState(() {
+        name = contacts;
+      });
+
     } else if (status.isDenied) {
       print('거절됨');
       Permission.contacts.request();
@@ -31,7 +38,7 @@ class _MyAppState extends State<MyApp> {
 
   var total = 3;
   var like = [0,0,0];
-  var name = ['해리', '론', '헤르미온느'];
+  var name = [];
 
   addName(a){
     if (a == ''){
@@ -77,7 +84,7 @@ class _MyAppState extends State<MyApp> {
                 itemBuilder: (c, i){
                   return ListTile(
                     leading: Icon(Icons.account_circle, size: 30,),
-                    title: Text(name[i].toString()),
+                    title: Text(name[i].givenName),
                     trailing: TextButton(onPressed: (){delete(i);}, child: Text('delete'),),
                   );
                 },
@@ -104,8 +111,10 @@ class DialogUI extends StatelessWidget {
             TextField( controller: inputData,),
             TextButton( child: Text('완료'),
               onPressed: (){
-              addOne();
-              addName(inputData.text);
+              var newContact = Contact();
+              newContact.givenName = inputData.text;
+              ContactsService.addContact(newContact);
+              addName(newContact);
               Navigator.pop(context);
               },),
             TextButton( child: Text('취소'),
